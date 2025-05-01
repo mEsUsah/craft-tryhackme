@@ -25,7 +25,7 @@ use mesusah\crafttryhackme\services\LeaderboardService;
  */
 class TryHackMe extends Plugin
 {
-    public string $schemaVersion = '1.0.0';
+    public string $schemaVersion = '1.0.1';
     public bool $hasCpSettings = true;
 
     public static function config(): array
