@@ -98,7 +98,7 @@ class LeaderboardService extends Component
             return $cachedData;
         }
         
-        $url = "{$this->webEndpoint}/api/leaderboards?country={$location}";
+        $url = "{$this->webEndpoint}/api/v2/leaderboards/general?period=all&country={$location}";
         $_h = curl_init();
         curl_setopt($_h, CURLOPT_HEADER, false);
         curl_setopt($_h, CURLOPT_RETURNTRANSFER, 1);
@@ -108,7 +108,7 @@ class LeaderboardService extends Component
         curl_setopt($_h, CURLOPT_DNS_CACHE_TIMEOUT, 2 );
 
         $result = json_decode(curl_exec($_h), true);
-        $data = $result["ranks"];
+        $data = $result["data"]["users"] ?? [];
         Craft::$app->cache->set($cacheKey, $data, $this->cacheDuration);
         return $data;
     }
