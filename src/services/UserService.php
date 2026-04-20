@@ -14,62 +14,66 @@ class UserService extends Component
 
     /**
      * Get the user rank from the TryHackMe API
-     * 
+     *
      * @param string $username
      * @return array
      */
      public function userData($username)
      {
-        // Check cache
         $cacheKey = md5("tryHackMeUserData_" . $username);
         $cachedData = Craft::$app->cache->get($cacheKey);
         if ($cachedData != null ) {
             return json_decode($cachedData, true);
         }
 
-        $data = [
-            'userName' => $username,
-        ];
+        $profile = $this->getUserProfile($username);
 
-        // Get user rank, score and avatar
-        $data = array_merge($data, $this->getUserRank($username));
-         
-        // Get all badges
-        $badges = $this->getBadgesAll();
-        foreach ($badges as $badge) {
-            $data['badges'][$badge['name']] = [
-                'title' => $badge['title'],
-                'name' => $badge['name'],
+        $badgeDocs = $this->getBadgesUser($username);
+        $badges = [];
+        foreach ($badgeDocs as $badge) {
+            $badges[$badge['name']] = [
+                'title'       => $badge['title'],
+                'name'        => $badge['name'],
                 'description' => $badge['description'],
-                'image' => $this->assetsEndpoint . $badge['image'],
-                'earned' => false,
+                'image'       => $badge['image'],
+                'earned'      => true,
             ];
         }
 
-        // Check if user has earned any badges
-        $earnedBadges = $this->getBadgesUser($username);
-        $data['earnedBadges'] = sizeof($earnedBadges);
-        foreach ($earnedBadges as $badge) {
-            if(isset($data['badges'][$badge['name']])) {
-                $data['badges'][$badge['name']]['earned'] = true;
-            }
-        }
+        $data = [
+            'userName'       => $username,
+            'userRank'       => $profile['rank'] ?? null,
+            'points'         => $profile['totalPoints'] ?? 0,
+            'avatar'         => $profile['avatar'] ?? null,
+            'country'        => $profile['country'] ?? null,
+            'badges'         => $badges,
+            'earnedBadges'   => $profile['badgesNumber'] ?? 0,
+            'completedRooms' => $profile['completedRoomsNumber'] ?? 0,
+        ];
 
-        // Get completed rooms
-        $data['completedRooms'] = $this->getCompletedRooms($username);
-
-        // Cache data
         Craft::$app->cache->set($cacheKey, json_encode($data), $this->cacheDuration);
 
         return $data;
      }
+
+    public function getUserProfile($username)
+    {
+        $url = "{$this->webEndpoint}/api/v2/public-profile?username={$username}";
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $output = curl_exec($ch);
+        curl_close($ch);
+        $json = json_decode($output, true);
+        return $json['data'] ?? [];
+    }
 
     public function getUserRank($username)
     {
         $url = "{$this->webEndpoint}/api/discord/user/{$username}";
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); 
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $output = curl_exec($ch);
         curl_close($ch);
         $json = json_decode($output, true);
@@ -78,7 +82,7 @@ class UserService extends Component
 
     /**
      * Get all badges from the TryHackMe API
-     * 
+     *
      * @param null
      * @return array
      */
@@ -87,7 +91,7 @@ class UserService extends Component
         $url = "{$this->webEndpoint}/api/badges/get";
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); 
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $output = curl_exec($ch);
         curl_close($ch);
         $json = json_decode($output, true);
@@ -96,25 +100,25 @@ class UserService extends Component
 
     /**
      * Get users badges from the TryHackMe API
-     * 
+     *
      * @param string $username
      * @return array
      */
     public function getBadgesUser($username)
     {
-        $url = "{$this->webEndpoint}/api/badges/get/{$username}";
+        $url = "{$this->webEndpoint}/api/v2/public-profile/badges?username={$username}&limit=100&page=1";
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); 
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $output = curl_exec($ch);
         curl_close($ch);
         $json = json_decode($output, true);
-        return $json;
+        return $json['data']['docs'] ?? [];
     }
 
     /**
-     * Get users badges from the TryHackMe API
-     * 
+     * Get users completed rooms from the TryHackMe API
+     *
      * @param string $username
      * @return array
      */
@@ -123,7 +127,7 @@ class UserService extends Component
         $url = "{$this->webEndpoint}/api/all-completed-rooms?username={$username}&limit=1000";
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); 
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $output = curl_exec($ch);
         curl_close($ch);
         $json = json_decode($output, true);
