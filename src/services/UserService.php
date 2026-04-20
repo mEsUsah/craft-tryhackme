@@ -32,11 +32,13 @@ class UserService extends Component
         $badges = [];
         foreach ($badgeDocs as $badge) {
             $badges[$badge['name']] = [
-                'title'       => $badge['title'],
-                'name'        => $badge['name'],
-                'description' => $badge['description'],
-                'image'       => $badge['image'],
-                'earned'      => true,
+                'title'        => $badge['title'],
+                'name'         => $badge['name'],
+                'description'  => $badge['description'],
+                'image'        => $badge['image'],
+                'rarityTier'   => $badge['rarityTier'] ?? null,
+                'rarityPercent'=> $badge['rarityPercent'] ?? null,
+                'earned'       => true,
             ];
         }
 
