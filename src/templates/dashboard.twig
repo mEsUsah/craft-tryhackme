@@ -1,8 +1,6 @@
 {% extends "_layouts/cp.twig" %}
 {% set title = "TryHackMe"|t('plugin-handle') %}
 {% set userData = craft.tryhackme.userData %}
-{# {% set leaderboardLocations = craft.tryhackme.leaderboardLocations %}
-{% set leaderboardLocation = craft.tryhackme.leaderboardLocation %} #}
 {% set tabs = {
   dashboard: {
     label: 'Dashboard'|t('plugin-handle'),
@@ -20,12 +18,35 @@
 {% set selectedTab = 'dashboard' %}
 
 {% block content %}
-    <h2>{{ craft.tryhackme.userName }}</h2>
-    <div>
-        <img src="{{ userData.avatar }}" alt="Profile picture" style="max-width: 100px">
+<div style="max-width:480px;">
+    <div class="pane" style="padding:0; overflow:hidden;">
+
+        {# Profile #}
+        <div style="display:flex; align-items:center; gap:16px; padding:16px; border-bottom:1px solid var(--hairline-color);">
+            <img src="{{ userData.avatar }}" alt="Profile picture" style="width:64px; height:64px; border-radius:50%; object-fit:cover; flex-shrink:0;">
+            <div>
+                <div style="font-size:16px; font-weight:700; line-height:1.2;">{{ craft.tryhackme.userName }}</div>
+                <div class="light" style="font-size:12px; margin-top:2px;">{{ userData.country|upper }}</div>
+                <a href="https://tryhackme.com/p/{{ craft.tryhackme.userName }}" target="_blank" class="go" style="font-size:12px; margin-top:6px; display:inline-block;">View profile</a>
+            </div>
+        </div>
+
+        {# Stats #}
+        <div style="display:grid; grid-template-columns:1fr 1fr;">
+            {% set stats = [
+                { label: 'Global rank',     value: '#' ~ userData.userRank },
+                { label: 'Points',          value: userData.points|number_format(0, '.', ' ') },
+                { label: 'Rooms completed', value: userData.completedRooms },
+                { label: 'Badges earned',   value: userData.earnedBadges },
+            ] %}
+            {% for stat in stats %}
+                <div style="padding:16px 18px; {% if loop.index <= 2 %}border-bottom:1px solid var(--hairline-color);{% endif %}{% if loop.index is odd %}border-right:1px solid var(--hairline-color);{% endif %}">
+                    <div class="light" style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.05em;">{{ stat.label }}</div>
+                    <div style="font-size:22px; font-weight:700; margin-top:4px;">{{ stat.value }}</div>
+                </div>
+            {% endfor %}
+        </div>
+
     </div>
-    <p>Rank: {{userData.userRank}}</p>
-    <p>Points: {{userData.points|number_format (0,'.',' ')}}</p>
-    <p>Rooms: {{userData.completedRooms|length}}</p>
-    <p>Badges: {{userData.earnedBadges}}</p>
+</div>
 {% endblock %}

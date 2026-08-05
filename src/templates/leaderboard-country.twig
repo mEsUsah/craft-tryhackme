@@ -18,18 +18,20 @@
 {% set selectedTab = 'leaderboardCountry' %}
 
 {% block content %}
-    <table class="data-table" dir="ltr">
-        <tbody>
-            {% for rank in craft.tryhackme.leaderboardCountry %}
-                <tr>
-                    <td class="">
-                        <img src="{{ rank.user.avatar }}" alt="profile picture" style="max-width: 40px">
-                    </td>
-                    <td class="light">{{loop.index}}</td>
-                    <td class="">{{ rank.score|number_format (0,'.',' ') }}</td>
-                    <td class="">{{ rank.user.name }}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div style="display:flex; flex-direction:column; gap:6px;">
+        {% for rank in craft.tryhackme.leaderboardCountry %}
+            {% set isMe = rank.username == userData.userName %}
+            <div style="display:flex; align-items:center; gap:16px; padding:8px 10px; background:{{ isMe ? '#fffbe6' : '#fff' }}; border-radius:4px; box-shadow:0 1px 3px rgba(0,0,0,.08); {{ isMe ? 'border-left:3px solid #f5a623;' : 'border-left:3px solid transparent;' }}">
+                <div style="width:32px; text-align:right; font-size:16px; font-weight:700; color:var(--medium-text-color); flex-shrink:0;">
+                    {{ loop.index }}
+                </div>
+                <img src="{{ rank.avatar }}" alt="{{ rank.username }}" style="width:64px; height:64px; border-radius:50%; object-fit:cover; flex-shrink:0;">
+                <div style="flex:1;">
+                    <div style="font-size:13px; font-weight:700; line-height:1.3;">{{ rank.username }}</div>
+                    <div style="font-size:12px; font-weight:600; color:var(--link-color); margin-top:2px;">{{ rank.points|number_format(0, '.', ' ') }}</div>
+                    <div style="font-size:11px; color:var(--medium-text-color); margin-top:1px;">{{ rank.roomsIn }} rooms</div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
 {% endblock %}

@@ -49,11 +49,6 @@ class TryHackMeVariable
     {
         $country_id = TryHackMe::getInstance()->getSettings()->country;
         $country = Country::find()->where(['id' => $country_id])->one();
-        
-        $data = TryHackMe::getInstance()->leaderboard->readLeaderboard([
-            'countries' => [$country],
-            'date' => date("Y-m-d")
-        ]);
-        return $data;
+        return TryHackMe::getInstance()->leaderboard->getScoreboard($country->handle);
     }
 }
