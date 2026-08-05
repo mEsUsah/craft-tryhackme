@@ -107,7 +107,22 @@ class LeaderboardService extends Component
         curl_setopt($_h, CURLOPT_DNS_USE_GLOBAL_CACHE, false );
         curl_setopt($_h, CURLOPT_DNS_CACHE_TIMEOUT, 2 );
 
-        $result = json_decode(curl_exec($_h), true);
+        $response = curl_exec($_h);
+        $statusCode = curl_getinfo($_h, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($_h);
+        curl_close($_h);
+
+        if ($response === false || $statusCode !== 200) {
+            Craft::warning("Failed to fetch TryHackMe scoreboard for \"{$location}\": HTTP {$statusCode} {$curlError}", __METHOD__);
+            return null;
+        }
+
+        $result = json_decode($response, true);
+        if (!is_array($result) || !isset($result["ranks"])) {
+            Craft::warning("Unexpected TryHackMe scoreboard response for \"{$location}\".", __METHOD__);
+            return null;
+        }
+
         $data = $result["ranks"];
         Craft::$app->cache->set($cacheKey, $data, $this->cacheDuration);
         return $data;
@@ -124,7 +139,15 @@ class LeaderboardService extends Component
     {
         // get all users in scoreboard
         $ranks = $this->getScoreboard($country->handle, false);
-        
+
+        if ($ranks === null) {
+            return [
+                'error' => "Failed to fetch TryHackMe scoreboard for {$country->name}.",
+                'users' => ['import' => 0, 'update' => 0],
+                'scores' => ['created' => 0, 'updated' => 0],
+            ];
+        }
+
         $usersCreated = 0;
         $usersUpdated = 0;
         $scoreCreated = 0;

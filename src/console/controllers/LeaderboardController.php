@@ -22,12 +22,18 @@ class LeaderboardController extends Controller
 
         // Find country models and import leaderboards
         $countries = Country::find()->where(['in', 'id', $country_ids])->all();
+        $hasErrors = false;
         foreach ($countries as $country) {
             $this->stdout("Importing leaderboard for " . $country->name . "... \t");
-            TryHackMe::getInstance()->leaderboard->importLeaderboard($country);
+            $result = TryHackMe::getInstance()->leaderboard->importLeaderboard($country);
+            if (isset($result['error'])) {
+                $hasErrors = true;
+                $this->stdout($result['error'] . PHP_EOL, Console::FG_RED);
+                continue;
+            }
             $this->stdout("Done" . PHP_EOL, Console::FG_GREEN);
         }
 
-        return ExitCode::OK;
+        return $hasErrors ? ExitCode::UNSPECIFIED_ERROR : ExitCode::OK;
     }
 }
