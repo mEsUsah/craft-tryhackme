@@ -106,6 +106,7 @@ class LeaderboardService extends Component
         curl_setopt($_h, CURLOPT_URL, $url );
         curl_setopt($_h, CURLOPT_DNS_USE_GLOBAL_CACHE, false );
         curl_setopt($_h, CURLOPT_DNS_CACHE_TIMEOUT, 2 );
+        curl_setopt($_h, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
 
         $response = curl_exec($_h);
         $statusCode = curl_getinfo($_h, CURLINFO_HTTP_CODE);
